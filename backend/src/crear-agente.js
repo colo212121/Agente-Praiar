@@ -17,7 +17,7 @@ Respondé de forma clara y breve.
 `.trim();
 
 const ollamaLLM = new Ollama({
-    model: "qwen3:1.7b",
+    model: "qwen3:0.6b",
     temperature: 0.75,
     timeout: 2 * 60 * 1000,
 });
