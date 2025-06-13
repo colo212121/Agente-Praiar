@@ -1,18 +1,19 @@
 import { supabase } from '../supabaseClient.js';
 
 class Busqueda {
-  // Busca balnearios según el nombre de la ciudad
+  // Busca balnearios según el nombre de la ciudad (búsqueda parcial, case insensitive)
   async buscarBalneariosPorCiudad(nombreCiudad) {
-    // Obtiene la ciudad por nombre
-    const { data: ciudad, error: errorCiudad } = await supabase
+    // Agregar % para búsqueda parcial (contains)
+    const { data: ciudades, error: errorCiudad } = await supabase
       .from('ciudades')
       .select('id_ciudad')
-      .ilike('nombre', nombreCiudad); // ilike para que no sea case sensitive
+      .ilike('nombre', `%${nombreCiudad}%`);
 
     if (errorCiudad) throw errorCiudad;
-    if (!ciudad || ciudad.length === 0) return [];
+    if (!ciudades || ciudades.length === 0) return [];
 
-    const idCiudad = ciudad[0].id_ciudad;
+    // Tomamos la primera ciudad que coincida
+    const idCiudad = ciudades[0].id_ciudad;
 
     // Busca balnearios con ese id_ciudad
     const { data: balnearios, error: errorBalnearios } = await supabase
@@ -24,9 +25,8 @@ class Busqueda {
     return balnearios || [];
   }
 
-  // Lista todos los balnearios y la ciudad a la que pertenecen
+  // Lista todos los balnearios con info de ciudad
   async listarBalneariosConCiudades() {
-    // Trae todos los balnearios con la info de ciudad usando join
     const { data, error } = await supabase
       .from('balnearios')
       .select(`
@@ -45,7 +45,6 @@ class Busqueda {
 
     if (error) throw error;
 
-    // Opcional: formatea el resultado para que sea más legible
     return (data || []).map(balneario => ({
       id_balneario: balneario.id_balneario,
       nombre: balneario.nombre,
@@ -55,6 +54,16 @@ class Busqueda {
       ciudad: balneario.ciudades ? balneario.ciudades.nombre : null,
       ciudad_img: balneario.ciudades ? balneario.ciudades.img : null,
     }));
+  }
+
+  // Nueva función: lista todas las ciudades
+  async listarCiudades() {
+    const { data, error } = await supabase
+      .from('ciudades')
+      .select('id_ciudad, nombre, img');
+
+    if (error) throw error;
+    return data || [];
   }
 }
 

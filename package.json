@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "back": "node backend/src/index.js",
+    "back": "nodemon backend/src/index.js",
     "start": "react-scripts start"
   },
   "author": "",
@@ -11,17 +11,20 @@
   "description": "",
   "dependencies": {
     "@llamaindex/ollama": "^0.1.5",
+    "@supabase/supabase-js": "^2.49.8",
     "chalk": "^5.4.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "llamaindex": "^0.10.6",
     "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
+    "nodemon": "^3.1.10",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-scripts": "^5.0.1",
-    "zod": "^3.24.4",
-    "@supabase/supabase-js": "^2.49.8"
+    "undici": "^7.10.0",
+    "zod": "^3.24.4"
   },
   "type": "module",
   "browserslist": {

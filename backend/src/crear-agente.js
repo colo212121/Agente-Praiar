@@ -12,6 +12,7 @@ Tu tarea es ayudar a consultar o mostrar datos de balnearios y la ciudad donde s
 Usá las herramientas disponibles para:
 - Buscar balnearios por ciudad
 - Mostrar la lista completa de balnearios con su ciudad
+- Mostrar la lista de todas las ciudades disponibles
 
 Respondé de forma clara y breve.
 `.trim();
@@ -28,7 +29,6 @@ const buscarBalneariosPorCiudadTool = tool({
     parameters: z.object({
       ciudad: z.string().describe("El nombre de la ciudad a buscar"),
     }),
-    // Es async porque consulta Supabase
     execute: async ({ ciudad }) => {
       try {
         const balnearios = await busqueda.buscarBalneariosPorCiudad(ciudad);
@@ -59,10 +59,26 @@ const listarBalneariosTool = tool({
     },
 });
 
-// SOLO exportá la función, no crees ni ejecutes el agente acá
+const listarCiudadesTool = tool({
+    name: "listarCiudades",
+    description: "Muestra la lista de todas las ciudades disponibles",
+    parameters: z.object({}),
+    execute: async () => {
+      try {
+        const ciudades = await busqueda.listarCiudades();
+        if (!ciudades || ciudades.length === 0) return "No hay ciudades registradas.";
+        return ciudades.map(ciudad => 
+          `Ciudad: ${ciudad.nombre}`
+        ).join('\n');
+      } catch (error) {
+        return `Error al listar ciudades: ${error.message}`;
+      }
+    },
+});
+
 export function crearAgenteBalnearios({ verbose = true } = {}) {
     return agent({
-        tools: [buscarBalneariosPorCiudadTool, listarBalneariosTool],
+        tools: [buscarBalneariosPorCiudadTool, listarBalneariosTool, listarCiudadesTool],
         llm: ollamaLLM,
         verbose,
         systemPrompt,
