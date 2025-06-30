@@ -1,0 +1,190 @@
+body, .min-h-screen {
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #e3eaff 100%);
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  }
+  
+  /* Contenedor principal centrar vertical y horizontal */
+  .main-chat-bg,
+  .min-h-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #e3eaff 100%);
+  }
+  
+  /* Chat box general */
+  .chat-box,
+  .w-full.max-w-md {
+    background: #fff;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    padding: 2rem 1.5rem 1.3rem 1.5rem;
+    margin: 0;
+    width: 100%;
+    max-width: 480px;
+    transition: box-shadow 0.2s;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  
+  /* Título del chat */
+  .chat-box h1,
+  .w-full.max-w-md h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #6d28d9;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    justify-content: center;
+  }
+  
+  /* Mensajes del chat */
+  .chat-mensajes {
+    flex: 1 1 0%;
+    max-height: 340px;
+    min-height: 180px;
+    overflow-y: auto;
+    margin-bottom: 1.2rem;
+    padding-right: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+  }
+  
+  /* Mensaje wrapper */
+  .mensaje {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .mensaje.usuario, .mensaje.rol-user {
+    align-items: flex-end;
+  }
+  
+  /* Burbujas de mensaje */
+  .mensaje .burbuja {
+    display: inline-block;
+    padding: 0.7em 1.08em;
+    border-radius: 1.3em;
+    font-size: 1.04em;
+    max-width: 80vw;
+    max-width: 350px;
+    word-break: break-word;
+    box-shadow: 0 2px 8px rgba(80,82,255,0.06);
+    margin-bottom: 0.1em;
+    margin-top: 0.1em;
+    border: 1px solid #ece9f9;
+  }
+  
+  /* Usuario (derecha, fondo violeta) */
+  .mensaje.usuario .burbuja,
+  .mensaje.rol-user .burbuja {
+    background: linear-gradient(90deg, #6366f1 60%, #2563eb 100%);
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 0.5em;
+    border-bottom-left-radius: 1.3em;
+    border: none;
+    text-align: right;
+  }
+  
+  /* Asistente (izquierda, fondo gris claro) */
+  .mensaje.asistente .burbuja,
+  .mensaje.rol-asistente .burbuja {
+    background: #f3f4f6;
+    color: #18181b;
+    align-self: flex-start;
+    border-bottom-left-radius: 0.5em;
+    border-bottom-right-radius: 1.3em;
+    border: none;
+    text-align: left;
+  }
+  
+  /* Nombres (opcional) */
+  .mensaje .nombre {
+    font-size: 0.90em;
+    color: #a1a1aa;
+    margin-bottom: 0.2em;
+  }
+  
+  /* Input y botón */
+  form.mt-4.flex {
+    display: flex;
+    gap: 0.7em;
+    margin-top: 1.1em;
+  }
+  
+  input[type="text"].flex-1 {
+    flex: 1;
+    border: 1.5px solid #cbd5e1;
+    padding: 0.68em 1.05em;
+    border-radius: 0.8em;
+    font-size: 1.08em;
+    outline: none;
+    transition: border 0.2s;
+    background: #f8fafc;
+    margin-right: 0.2em;
+  }
+  
+  input[type="text"].flex-1:focus {
+    border-color: #6366f1;
+    background: #fff;
+  }
+  
+  button.bg-blue-500 {
+    background: linear-gradient(90deg, #6366f1 60%, #2563eb 100%);
+    color: #fff;
+    border: none;
+    padding: 0.68em 1.7em;
+    border-radius: 0.8em;
+    font-size: 1.08em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 2px 8px rgba(80,82,255,0.07);
+  }
+  
+  button.bg-blue-500:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  /* Loader animación */
+  .loader {
+    margin: 0.5em auto;
+    border: 3px solid #e0e7ff;
+    border-top: 3px solid #6366f1;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin {
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Errores */
+  .text-red-500 {
+    color: #ef4444;
+    font-size: 1em;
+    margin-top: 0.7em;
+    text-align: center;
+  }
+  
+  /* Scrollbar personalizado para el chat */
+  .chat-mensajes::-webkit-scrollbar {
+    width: 7px;
+  }
+  .chat-mensajes::-webkit-scrollbar-thumb {
+    background: #e0e7ff;
+    border-radius: 4px;
+  }

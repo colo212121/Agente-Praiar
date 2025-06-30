@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Chat from './chat';
 import { enviarMensajeAlBackend } from './api';
+import './app.css';
 
 export default function App() {
   const [mensajes, setMensajes] = useState([]);
@@ -17,12 +18,10 @@ export default function App() {
     setInput('');
     try {
       const respuesta = await enviarMensajeAlBackend(input);
-      // Si la respuesta es string parsea, sino usa como objeto
       const respuestaJson = typeof respuesta === 'string' ? JSON.parse(respuesta) : respuesta;
 
       let textoPlano;
       if (respuestaJson?.data?.result) {
-        // Extrae solo lo que viene después del último </think>
         const match = respuestaJson.data.result.match(/<\/think>([\s\S]*)$/i);
         textoPlano = match ? match[1].trim() : respuestaJson.data.result.trim();
       } else if (typeof respuesta === 'string') {
@@ -40,9 +39,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-      <div className="w-full max-w-md bg-white p-4 rounded shadow">
-        <h1 className="text-xl font-bold mb-4">🧠 Chat con el Asistente</h1>
+    <div className="main-chat-bg min-h-screen">
+      <div className="chat-box w-full max-w-md">
+        <h1>
+          <span role="img" aria-label="brain">🧠</span> Chat con el Asistente
+        </h1>
         <Chat mensajes={mensajes} loading={loading} />
         <form className="mt-4 flex gap-2" onSubmit={handleSend}>
           <input

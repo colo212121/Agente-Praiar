@@ -52,7 +52,7 @@ class Busqueda {
       telefono: balneario.telefono,
       imagen: balneario.imagen,
       ciudad: balneario.ciudades ? balneario.ciudades.nombre : null,
-      ciudad_img: balneario.ciudades ? balneario.ciudades.img : null,
+      ciudad_img: balneario.ciudades ? balneario.ciudades.imagen : null,
     }));
   }
 
@@ -66,186 +66,102 @@ class Busqueda {
     return data || [];
   }
 
-  // --- NUEVAS FUNCIONES BASADAS EN server.js ---
-
-  // Obtener el perfil de un usuario por su auth_id
-  async obtenerPerfil(auth_id) {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('auth_id', auth_id)
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Actualizar el perfil de un usuario
-  async actualizarPerfil(auth_id, datos) {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .update(datos)
-      .eq('auth_id', auth_id)
-      .select()
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Listar los balnearios de un usuario
-  async listarMisBalnearios(auth_id) {
-    const { data, error } = await supabase
-      .from('balnearios')
-      .select('*')
-      .eq('id_usuario', auth_id);
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  // Obtener info de un balneario
-  async obtenerInfoBalneario(id_balneario) {
-    const { data, error } = await supabase
-      .from('balnearios')
-      .select('*')
-      .eq('id_balneario', id_balneario)
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Listar carpas de un balneario
-  async listarCarpasDeBalneario(id_balneario) {
-    const { data, error } = await supabase
-      .from('ubicaciones')
-      .select('*')
-      .eq('id_balneario', id_balneario);
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  // Listar elementos de un balneario
-  async listarElementosDeBalneario(id_balneario) {
-    const { data, error } = await supabase
-      .from('elementos_ubicacion')
-      .select('*')
-      .eq('id_balneario', id_balneario);
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  // Listar todos los servicios (de todos los balnearios)
-  async listarServicios() {
-    const { data, error } = await supabase
-      .from('servicios')
-      .select('id_servicio, nombre, imagen');
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  // Listar reservas de un balneario (puede filtrar por fechas)
-  async listarReservasDeBalneario(id_balneario, fechaInicio = null, fechaFin = null) {
-    let query = supabase
-      .from('reservas')
-      .select('id_ubicacion, fecha_inicio, fecha_salida')
-      .eq('id_balneario', id_balneario);
-
-    if (fechaInicio && fechaFin) {
-      query = query
-        .lte('fecha_inicio', fechaFin)
-        .gte('fecha_salida', fechaInicio);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
-  }
-
-  // Listar reservas de un usuario (puede filtrar por fechas)
-  async listarReservasDeUsuario(auth_id, fechaInicio = null, fechaFin = null) {
-    let query = supabase
-      .from('reservas')
-      .select(`
-        *,
-        ubicaciones (
-          id_carpa,
-          posicion
-        ),
-        balnearios (
-          nombre
-        )
-      `)
-      .eq('id_usuario', auth_id);
-
-    if (fechaInicio && fechaFin) {
-      query = query
-        .lte('fecha_inicio', fechaFin)
-        .gte('fecha_salida', fechaInicio);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
-  }
-
-  // Obtener información de una ubicación (carpa) y su balneario
-  async obtenerInfoUbicacion(id_ubicacion) {
-    const { data, error } = await supabase
-      .from('ubicaciones')
-      .select('*, balnearios: id_balneario (id_balneario, nombre, direccion, id_ciudad)')
-      .eq('id_carpa', id_ubicacion)
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // NUEVA FUNCIÓN: Filtrar balnearios por servicios
   /**
-   * Filtra todos los balnearios que tienen TODOS los servicios especificados (match all).
-   * @param {Array<number>} idsServicios - Array de ids de servicios a filtrar.
-   * @returns {Promise<Array>} lista de balnearios que cumplen con los servicios
+   * Filtra balnearios por ciudad y por servicios (por NOMBRE de servicio, no por id).
+   * Devuelve los balnearios que estén en la ciudad buscada y tengan TODOS los servicios indicados.
+   * @param {string} nombreCiudad - Nombre (o parte del nombre) de la ciudad. Si es null, ignora filtro de ciudad.
+   * @param {Array<string>} nombresServicios - Array de nombres de servicios a filtrar.
+   * @returns {Promise<Array>} lista de balnearios que cumplen con los servicios y ciudad
    */
-  async filtrarBalneariosPorServicios(idsServicios) {
-    if (!Array.isArray(idsServicios) || idsServicios.length === 0) return [];
+  async filtrarBalneariosPorCiudadYServicios(nombreCiudad, nombresServicios) {
+    if (!Array.isArray(nombresServicios) || nombresServicios.length === 0) return [];
 
-    // Traer balnearios que tengan todos los servicios indicados
-    // Asumiendo tabla balneario_servicio con id_balneario, id_servicio
-    // Estrategia: contar cuántos servicios matchea cada balneario
-    const { data, error } = await supabase
-      .from('balneario_servicio')
-      .select('id_balneario')
+    // 1. Buscar ids de los servicios por sus nombres (case insensitive, match parcial)
+    const { data: servicios, error: errorServicios } = await supabase
+      .from('servicios')
+      .select('id_servicio, nombre')
+      .or(
+        nombresServicios
+          .map(nom => `nombre.ilike.%${nom}%`)
+          .join(',')
+      );
+
+    if (errorServicios) throw errorServicios;
+    if (!servicios || servicios.length < nombresServicios.length) {
+      // No se encontraron todos los servicios buscados
+      return [];
+    }
+
+    const idsServicios = servicios.map(s => s.id_servicio);
+
+    // 2. Si hay filtro de ciudad, buscar id_ciudad
+    let idCiudad = null;
+    if (nombreCiudad && nombreCiudad.trim() !== '') {
+      const { data: ciudades, error: errorCiudad } = await supabase
+        .from('ciudades')
+        .select('id_ciudad')
+        .ilike('nombre', `%${nombreCiudad}%`);
+
+      if (errorCiudad) throw errorCiudad;
+      if (!ciudades || ciudades.length === 0) return [];
+      idCiudad = ciudades[0].id_ciudad;
+    }
+
+    // 3. Buscar balnearios_servicios que tengan esos servicios
+    const { data: bs, error: errorBS } = await supabase
+      .from('balnearios_servicios')
+      .select('id_balneario, id_servicio')
       .in('id_servicio', idsServicios);
 
-    if (error) throw error;
-    if (!data || data.length === 0) return [];
+    if (errorBS) throw errorBS;
+    if (!bs || bs.length === 0) return [];
 
-    // Contar ocurrencias de cada balneario
+    // 4. Contar ocurrencias de balneario: debe tener TODOS los servicios pedidos
     const balnearioCount = {};
-    data.forEach(row => {
+    bs.forEach(row => {
       balnearioCount[row.id_balneario] = (balnearioCount[row.id_balneario] || 0) + 1;
     });
 
-    // Filtrar los balnearios que tengan la cantidad exacta de servicios requeridos
     const balneariosMatch = Object.entries(balnearioCount)
       .filter(([_, count]) => count === idsServicios.length)
       .map(([id]) => parseInt(id));
 
     if (balneariosMatch.length === 0) return [];
 
-    // Traer info de los balnearios filtrados
-    const { data: balnearios, error: errorBal } = await supabase
+    // 5. Traer info de los balnearios filtrados (y de la ciudad si corresponde)
+    let query = supabase
       .from('balnearios')
-      .select('id_balneario, nombre, direccion, telefono, imagen, id_ciudad')
+      .select(`
+        id_balneario,
+        nombre,
+        direccion,
+        telefono,
+        imagen,
+        id_ciudad,
+        ciudades (
+          id_ciudad,
+          nombre,
+          img
+        )
+      `)
       .in('id_balneario', balneariosMatch);
 
+    if (idCiudad) {
+      query = query.eq('id_ciudad', idCiudad);
+    }
+
+    const { data: balnearios, error: errorBal } = await query;
     if (errorBal) throw errorBal;
-    return balnearios || [];
+
+    return (balnearios || []).map(balneario => ({
+      id_balneario: balneario.id_balneario,
+      nombre: balneario.nombre,
+      direccion: balneario.direccion,
+      telefono: balneario.telefono,
+      imagen: balneario.imagen,
+      ciudad: balneario.ciudades ? balneario.ciudades.nombre : null,
+      ciudad_img: balneario.ciudades ? balneario.ciudades.imagen : null,
+    }));
   }
 }
 
